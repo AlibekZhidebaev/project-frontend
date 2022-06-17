@@ -3,9 +3,67 @@
     <title>RPG</title>
     <script src=https://code.jquery.com/jquery-3.6.0.min.js></script>
     <link href="/css/my.css" rel="stylesheet">
+<<<<<<< HEAD
 </head>
 <body>
 <h1>RPG admin panel</h1>
+=======
+    <style>
+        /* Стили для таблицы */
+        #myTable {
+            border-collapse: collapse; /* Объединение границ ячеек */
+        }
+
+        #myTable th, #myTable td {
+            border: 1px solid black; /* Границы ячеек */
+            padding: 8px; /* Отступ внутри ячеек */
+        }
+    </style>
+</head>
+<body>
+<h1>RPG admin panel</h1>
+<h2>Accounts list:</h2>
+
+<div id="paging">
+    Count per page:
+    <select id="pageSize">
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+    </select>
+
+</div>
+<br>
+<table id="myTable">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Title</th>
+        <th>Race</th>
+        <th>Profession</th>
+        <th>Level</th>
+        <th>Birthday</th>
+        <th>Banned</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Здесь можно добавить строки с данными -->
+    </tbody>
+</table></br>
+
+    <div class="paging-buttons">
+        Pages:
+        <button onclick="previousPage()">Previous</button>
+        <button onclick="nextPage()">Next</button>
+    </div>
+
+
+<script>
+    // Здесь можно писать JavaScript функции
+</script>
+>>>>>>> b79a02e (Add_Tomcat_server)
 
 </body>
 </html>
