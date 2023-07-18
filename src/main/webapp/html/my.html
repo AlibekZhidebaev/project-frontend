@@ -27,14 +27,15 @@
 <div id="paging">
     Count per page:
     <select id="pageSize">
-        <option value="3">3</option>
+        <option value="3" selected="selected">3</option>
         <option value="5">5</option>
         <option value="10">10</option>
         <option value="20">20</option>
+
     </select>
 
-</div>
-<br>
+</div><br>
+
 <table id="myTable">
     <thead>
     <tr>
@@ -49,21 +50,58 @@
     </tr>
     </thead>
     <tbody>
-    <!-- Здесь можно добавить строки с данными -->
+
     </tbody>
 </table></br>
-
-    <div class="paging-buttons">
-        Pages:
-        <button onclick="previousPage()">Previous</button>
-        <button onclick="nextPage()">Next</button>
-    </div>
+<div class="paging-buttons">
+    Pages:
+    <button onclick="previousPage()">Previous</button>
+    <button onclick="nextPage()">Next</button>
+</div>
 
 
 <script>
-    // Здесь можно писать JavaScript функции
+    let select =  document.getElementById("pageSize");
+    let table = document.getElementById("myTable");         // -- доступ к таблице по id --
+    let tbody = document.querySelector("#myTable tbody");   // -- доступ к разделу tbody в таблице --
+    addRow(select.innerText[0]); // -- список строк в разделе tbody по умолчанию --
+    select.addEventListener('change', function() {
+        while (table.rows.length > 1) {  table.deleteRow(1); } // -- Очистка таблицы перед заполнением --
+        let selectedValue = parseInt(this.value);  // -- Парсинг значений select --
+        addRow(selectedValue);});
+
+    function addRow(count) {
+        for (let i = 1; i <= count; i++){
+        let cells = [];
+        let row = document.createElement("tr"); // -- Добавляем строку в раздел tbody в табице --
+         for (let i = 1; i <= 8; i++) {
+             cells[i] = row.insertCell();        // -- Добавляем ячейки в строку --
+             cells[i].innerHTML = "cell1" + i;   // -- Заполняем ячеки данными --
+         }
+        tbody.appendChild(row);       // -- Отображаем строку на таблице --
+    }
+    }
+
+    //-----------------------------GET-----------------------------------------
+    function getPlayers() {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', '/rest/players', true);
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let players = JSON.parse(xhr.responseText);
+                console.log(players); // Действия с полученным списком игроков
+            }
+        };
+
+        xhr.send();
+    }
+    console.log(getPlayers())
+    //-------------------------------------------------------------------------
 </script>
 >>>>>>> b79a02e (Add_Tomcat_server)
+
+
 
 </body>
 </html>
