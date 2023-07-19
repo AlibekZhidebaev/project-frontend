@@ -17,7 +17,12 @@
         #myTable th, #myTable td {
             border: 1px solid black; /* Границы ячеек */
             padding: 8px; /* Отступ внутри ячеек */
+
+        #myButton:active {
+            /* Установите желаемый фон для активного состояния кнопки */
+            background-color: #ffbf00;
         }
+
     </style>
 </head>
 <body>
@@ -47,57 +52,216 @@
         <th>Level</th>
         <th>Birthday</th>
         <th>Banned</th>
+        <th>Edit</th>
+        <th>Delete</th>
     </tr>
     </thead>
-    <tbody>
+    <tbody>    </tbody>
+</table>
 
-    </tbody>
-</table></br>
-<div class="paging-buttons">
-    Pages:
-    <button onclick="previousPage()">Previous</button>
-    <button onclick="nextPage()">Next</button>
-</div>
+</br>
 
+<div id="pagination-section">Pages: </div>
 
 <script>
-    let select =  document.getElementById("pageSize");
-    let table = document.getElementById("myTable");         // -- доступ к таблице по id --
-    let tbody = document.querySelector("#myTable tbody");   // -- доступ к разделу tbody в таблице --
-    addRow(select.innerText[0]); // -- список строк в разделе tbody по умолчанию --
-    select.addEventListener('change', function() {
-        while (table.rows.length > 1) {  table.deleteRow(1); } // -- Очистка таблицы перед заполнением --
-        let selectedValue = parseInt(this.value);  // -- Парсинг значений select --
-        addRow(selectedValue);});
+    // -- Блок переменных --
+    let selectElement = document.getElementById('pageSize'); // -- получение элементов выбора --
+    let table = document.getElementById("myTable"); // -- получение таблицы --
+    let tbody = table.querySelector("tbody");       // -- получение блока tbody таблицы --
+    // -- получение секции кнопок с нумерациями страниц --
+    let paginationSection = document.getElementById('pagination-section');
+    let currentPage = 0;
+    let pageSize = 3;
+    let totalAccounts = getTotalAccounts();
+    let totalPages = 0;
 
-    function addRow(count) {
-        for (let i = 1; i <= count; i++){
-        let cells = [];
-        let row = document.createElement("tr"); // -- Добавляем строку в раздел tbody в табице --
-         for (let i = 1; i <= 8; i++) {
-             cells[i] = row.insertCell();        // -- Добавляем ячейки в строку --
-             cells[i].innerHTML = "cell1" + i;   // -- Заполняем ячеки данными --
-         }
-        tbody.appendChild(row);       // -- Отображаем строку на таблице --
-    }
-    }
-
-    //-----------------------------GET-----------------------------------------
-    function getPlayers() {
+    // -- GET запрос на получение списка игроков --
+    getPlayers(currentPage, pageSize);
+    function getPlayers(pageNumber, pageSize) {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', '/rest/players', true);
-
+        xhr.open('GET', '/rest/players?pageNumber=' + pageNumber + '&pageSize=' + pageSize, true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4 && xhr.status === 200) {
                 let players = JSON.parse(xhr.responseText);
-                console.log(players); // Действия с полученным списком игроков
+                fillTable(players);
+                getTotalAccounts();
+                updatePaginationButtons();
+                updatePagination(players.length);
+            }
+        };
+        xhr.send();
+    }
+
+    // -- GET запрос на получение общего количества игроков --
+    function getTotalAccounts() {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', '/rest/players/count', true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                totalAccounts = parseInt(xhr.responseText);
+                calculateTotalPages();
             }
         };
 
         xhr.send();
     }
-    console.log(getPlayers())
-    //-------------------------------------------------------------------------
+
+    // -- GET запрос на удаление игрока с указанным id --
+    function deleteAccount(playerId) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('DELETE', '/rest/players/' + playerId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    console.log('Аккаунт с id=' + playerId + ' успешно удален.');
+                    // После успешного удаления аккаунта, обновляем список аккаунтов
+                    getPlayers(currentPage, pageSize);
+                } else {
+                    console.error('Ошибка при удалении аккаунта с id=' + playerId + '.');
+                }
+            }
+        };
+        xhr.send();
+    }
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // -- Функция для обработки редактирования аккаунта --
+    function editAccount(playerId) {
+        let editButton = document.getElementById('edit-button-' + playerId);
+        let deleteButton = document.getElementById('delete-button-' + playerId);
+        let saveIconUrl = '/img/save.png'; // Путь к изображению иконки сохранения
+        let saveIcon = document.createElement('img');
+        saveIcon.src = saveIconUrl;
+        saveIcon.alt = 'Save';
+
+        // Скрываем кнопку "Delete"
+        deleteButton.style.display = 'none';
+
+        // Меняем иконку на "Save"
+       // editButton.style.display = 'none'
+        editButton.innerHTML = '';
+        editButton.appendChild(saveIcon);
+
+        // Делаем поля редактируемыми
+        let nameField = document.getElementById('name-' + playerId);
+        let titleField = document.getElementById('title-' + playerId);
+        let raceField = document.getElementById('race-' + playerId);
+        let professionField = document.getElementById('profession-' + playerId);
+        let bannedField = document.getElementById('banned-' + playerId);
+
+        nameField.disabled = false;
+        titleField.disabled = false;
+        raceField.disabled = false;
+        professionField.disabled = false;
+        bannedField.disabled = false;
+    }
+
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    // -- Заполнение таблицы списком игроков --
+
+    function fillTable(players) {
+        // Заполнение tbody данными
+        tbody.innerHTML = '';  // -- Очистка tbody перед заполнением --
+        // -- Заполнение tbody данными --
+        for (let key in players) {
+            let player = players[key];
+            let row = tbody.insertRow();
+            let idCell = row.insertCell();
+            idCell.textContent = player.id;
+            let nameCell = row.insertCell();
+            nameCell.textContent = player.name;
+            nameCell.id = 'name-' + player.id;
+            let titleCell = row.insertCell();
+            titleCell.textContent = player.title;
+            let raceCell = row.insertCell();
+            raceCell.textContent = player.race;
+            let professionCell = row.insertCell();
+            professionCell.textContent = player.profession;
+            let levelCell = row.insertCell();
+            levelCell.textContent = player.level;
+            let birthdayCell = row.insertCell();
+
+            let birthdayDate = new Date(player.birthday);
+            let formattedDate = birthdayDate.toISOString().split('T')[0];
+            birthdayCell.textContent = formattedDate;
+
+            let bannedCell = row.insertCell();
+            bannedCell.textContent = player.banned;
+
+
+            //////////////////////////////////
+            // -- Добавление колонки "Edit" с иконкой редактирования --
+            let editCell = row.insertCell();
+            let editIconUrl = '/img/edit.png'; // Путь к изображению иконки редактирования
+            let editIcon = document.createElement('img');
+            editIcon.id = 'edit-button-' + player.id;
+            editIcon.className = 'edit-button';
+            editIcon.src = editIconUrl;
+            editIcon.alt = 'Edit';
+            editIcon.addEventListener('click', function() {
+                // Обработчик для редактирования записи, можете добавить здесь вашу логику редактирования
+                editAccount(player.id);
+            });
+            editCell.appendChild(editIcon);
+
+            // -- Добавление колонки "Delete" с иконкой удаления --
+            let deleteCell = row.insertCell();
+            let deleteIconUrl = '/img/delete.png'; // Путь к изображению иконки удаления
+            let deleteIcon = document.createElement('img');
+            deleteIcon.id = 'delete-button-' + player.id;
+            deleteIcon.className = 'delete-button';
+            deleteIcon.src = deleteIconUrl;
+            deleteIcon.alt = 'Delete';
+            deleteIcon.addEventListener('click', function() {
+                // Вызываем функцию удаления аккаунта с заданным id
+                deleteAccount(player.id);
+            });
+            deleteCell.appendChild(deleteIcon);
+            ///////////////////////////////////
+        }
+    }
+
+    // -- Вычисление общего количества страниц --
+    function calculateTotalPages() {
+        totalPages = Math.ceil(totalAccounts / pageSize);
+    }
+
+    // -- Обновление спика кнопок с нумерациями страниц --
+    function updatePaginationButtons() {
+        paginationSection.innerHTML = '';
+        for (let i = 0; i < totalPages; i++) {
+            let button = document.createElement('button');
+            button.textContent = i+1;
+            button.value = i;
+            button.id = "myButton";
+            button.addEventListener('click', function() {
+                currentPage = parseInt(this.value);
+                getPlayers(currentPage, pageSize);
+                updatePaginationButtons();
+            });
+            paginationSection.appendChild(button);
+        }
+    }
+
+    function updatePagination(accountCount) {
+        if (accountCount === 0) {
+            paginationSection.innerHTML = '';
+            return;
+        }
+        let paginationButtons = paginationSection.querySelectorAll('button');
+        paginationButtons.forEach(function(button) {
+            button.disabled = parseInt(button.value) === currentPage;
+        });
+    }
+
+    function changePageSize() {
+        pageSize = parseInt(selectElement.value);
+        getPlayers(0, pageSize);
+        getTotalAccounts();
+    }
+
+    document.getElementById('pageSize').addEventListener('change', changePageSize);
+
 </script>
 >>>>>>> b79a02e (Add_Tomcat_server)
 
