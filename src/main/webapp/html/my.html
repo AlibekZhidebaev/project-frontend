@@ -19,8 +19,26 @@
             padding: 8px; /* Отступ внутри ячеек */
         }
 
+        .input-block label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        .input-block input,
+        .input-block select {
+            width: 200px;
+        }
+
+        #createAccountButton {
+            color: white;
+            padding: 0;
+        }
+        #buttonSave {
+            text-align: right;
+        }
 
     </style>
+
 </head>
 <body>
 <h1>RPG admin panel</h1>
@@ -121,9 +139,11 @@
     }
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // -- Функция для обработки редактирования аккаунта --
-    function editAccount(playerId, updatedPlayerData) {
+
+    //------------------------------------------------------------------------------
+    function updateAccount(playerId, updatedPlayerData) {
         let xhr = new XMLHttpRequest();
-        xhr.open('PUT', '/rest/players/' + playerId, true);
+        xhr.open('POST', '/rest/players/' + playerId, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
@@ -137,14 +157,13 @@
         };
         xhr.send(JSON.stringify(updatedPlayerData));
     }
-
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function getDropdownOptions() {
         // Верните здесь массив или объект с возможными значениями для Race и Profession
         return {
-            raceOptions: ["HUMAN","DWARF","ELF","GIANT","ORC","TROLL","HOBBIT"], // Пример значений для Race
-            professionOptions: [ "WARRIOR","ROGUE","SORCERER","CLERIC","PALADIN","NAZGUL","WARLOCK","DRUID"], // Пример значений для Profession
+            raceOptions: ["HUMAN","DWARF","ELF","GIANT","ORC","TROLL","HOBBIT"], // Значения для Race
+            professionOptions: [ "WARRIOR","ROGUE","SORCERER","CLERIC","PALADIN","NAZGUL","WARLOCK","DRUID"], // Значения для Profession
             banned: ["true", "false"]
         };
     }
@@ -161,7 +180,8 @@
         });
         return select;
     }
-
+    //****************************************************
+    //***************************************************
     // -- Заполнение таблицы списком игроков --
 
     function fillTable(players) {
@@ -191,8 +211,8 @@
             let bannedCell = row.insertCell();
             bannedCell.textContent = player.banned;
 
-            //////////////////////////////////
             // -- Добавление колонки "Edit" с иконкой редактирования --
+
             let editCell = row.insertCell();
             let editIconUrl = '/img/edit.png';
             let editIcon = document.createElement('img');
@@ -212,7 +232,6 @@
                     let bannedSelect = createDropdownSelect(dropdownOptions.banned, player.banned.toString());
                     bannedCell.innerHTML = '';
                     bannedCell.appendChild(bannedSelect);
-
                     editIcon.alt = 'Save';
                     editIcon.src = '/img/save.png';
                     deleteIcon.style.display = 'none';
@@ -223,19 +242,20 @@
                         title: titleCell.querySelector('input').value,
                         race: raceCell.querySelector('select').value,
                         profession: professionCell.querySelector('select').value,
-                        banned: bannedCell.querySelector('select').value === 'true'
+                        banned: bannedCell.querySelector('select').value
                     };
-                    editAccount(player.id, updatedPlayerData);
+                   // editAccount(player.id, updatedPlayerData);
                     editIcon.alt = 'Edit';
                     editIcon.src = '/img/edit.png';
                     deleteIcon.style.display = 'inline';
 
                     // Возвращаем обычные текстовые данные после сохранения
-                    nameCell.textContent = updatedPlayerData.name;
-                    titleCell.textContent = updatedPlayerData.title;
-                    raceCell.textContent = updatedPlayerData.race;
-                    professionCell.textContent = updatedPlayerData.profession;
+                    nameCell.textContent = updatedPlayerData.name.toString();
+                    titleCell.textContent = updatedPlayerData.title.toString();
+                    raceCell.textContent = updatedPlayerData.race.toString();
+                    professionCell.textContent = updatedPlayerData.profession.toString();
                     bannedCell.textContent = updatedPlayerData.banned.toString();
+                    updateAccount(player.id, updatedPlayerData);
                 }
             });
             editCell.appendChild(editIcon);
@@ -253,7 +273,6 @@
                 deleteAccount(player.id);
             });
             deleteCell.appendChild(deleteIcon);
-            ///////////////////////////////////
         }
     }
 
@@ -300,7 +319,62 @@
 </script>
 >>>>>>> b79a02e (Add_Tomcat_server)
 
-
+        // -- Блок добавления аккаунта --
+    <p>
+        <h2> Create new account </h2>
+        <form action="/create_account" method="post">
+         <table>
+             <tr>
+                <td><label for="name">Name:</label></td>
+                <td><input type="text" id="name" name="name" maxlength="12" required></td>
+            </tr>
+            <tr>
+                <td><label for="title">Title:</label></td>
+                <td><input type="text" id="title" name="title" maxlength="30" required></td>
+            </tr>
+            <tr>
+                <td><label for="race">Race:</label></td>
+                <td>
+                    <select id="race" name="race" required>
+                    <!-- Допустимые значения для Race -->
+                        <option value="human">Human</option>
+                        <option value="elf">Elf</option>
+                        <option value="dwarf">Dwarf</option>
+                    </select>
+                </td>
+             </tr>
+             <tr>
+                 <td><label for="profession">Profession:</label></td>
+                 <td>
+                    <select id="profession" name="profession" required>
+                    <!-- Добавьте допустимые значения для Profession из API -->
+                        <option value="warrior">Warrior</option>
+                        <option value="mage">Mage</option>
+                        <option value="archer">Archer</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="level">Level:</label></td>
+                <td><input type="number" id="level" name="level" min="0" max="100" required></td>
+            </tr>
+            <tr>
+                <td><label for="birthday">Birthday:</label></td>
+                <td><input type="date" id="birthday" name="birthday" required></td>
+            </tr>
+            <tr>
+                <td><label for="banned">Banned:</label></td>
+                <td><input type="checkbox" id="banned" name="banned"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td id = "buttonSave">
+                    <button id="createAccountButton" type="submit"><img src="/img/save.png" alt="Save"></button>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </p>
 
 </body>
 </html>
