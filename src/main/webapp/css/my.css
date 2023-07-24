@@ -1,4 +1,29 @@
-#myButton:active {
-    /* Установите желаемый фон для активного состояния кнопки */
-    background-color: #ffbf00;
-}
+
+        /* Стили для таблицы */
+    #myTable {
+        border-collapse: collapse; /* Объединение границ ячеек */
+    }
+
+    #myTable th, #myTable td {
+        border: 1px solid black; /* Границы ячеек */
+        padding: 8px; /* Отступ внутри ячеек */
+    }
+
+    .input-block label {
+        display: inline-block;
+        width: 100px;
+    }
+
+    .input-block input,
+    .input-block select {
+        width: 200px;
+    }
+        /* Стили для кнопки создания аккаунта */
+    #createAccountButton {
+        color: white;
+        padding: 0;
+    }
+        /* Расположение кнопки создания аккаунта */
+    #buttonSave {
+        text-align: right;
+    }
