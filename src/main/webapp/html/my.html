@@ -127,11 +127,11 @@
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
-                    console.log('Аккаунт с id=' + playerId + ' успешно удален.');
+                    console.log('Account with id=' + playerId + ' has been deleted successfully.');
                     // После успешного удаления аккаунта, обновляем список аккаунтов
                     getPlayers(currentPage, pageSize);
                 } else {
-                    console.error('Ошибка при удалении аккаунта с id=' + playerId + '.');
+                    console.error('Error when deleting account with id=' + playerId + '.');
                 }
             }
         };
@@ -148,10 +148,10 @@
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
-                    console.log('Аккаунт с id=' + playerId + ' успешно обновлен.');
+                    console.log('Account with id=' + playerId + ' was successfully updated.');
                     getPlayers(currentPage, pageSize);
                 } else {
-                    console.error('Ошибка при обновлении аккаунта с id=' + playerId + '.');
+                    console.error('Error updating account with id=' + playerId + '.');
                 }
             }
         };
@@ -180,8 +180,7 @@
         });
         return select;
     }
-    //****************************************************
-    //***************************************************
+
     // -- Заполнение таблицы списком игроков --
 
     function fillTable(players) {
@@ -316,10 +315,68 @@
     }
     document.getElementById('pageSize').addEventListener('change', changePageSize);
 
+    // -- Блок для создания аакаунта --
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Здесь вы можете поместить ваш код, включая добавление обработчиков событий к элементам DOM
+        let createAccount = document.getElementById("createAccountButton");
+        if (createAccount) {
+            createAccount.addEventListener("click", function() {
+                // Обработчик события для кнопки "myButton"
+        let nameInput = document.getElementById("name").value;
+        let titleInput = document.getElementById("title").value;
+        let raceInput = document.getElementById("race").value;
+        let professionInput = document.getElementById("profession").value;
+        let levelInput = document.getElementById("level").value;
+        let birthdayInput = document.getElementById("birthday").value;
+        let bannedInput = document.getElementById("banned").value;
+
+        let data = {
+            name: nameInput.toString(),
+            title: titleInput.toString(),
+            race: raceInput.toString(),
+            profession: professionInput.toString(),
+            level: parseInt(levelInput),
+            birthday: new Date(birthdayInput).getTime(),
+            banned:  bannedInput === "true",
+        }
+
+        console.log(data);
+//**********************************************************************************
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/rest/players', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    alert("Data successfully sent to the server");
+                    // Очистка полей формы после успешного отправления данных
+                    document.getElementById("name").value = "";
+                    document.getElementById("title").value = "";
+                    document.getElementById("race").value = "HUMAN";
+                    document.getElementById("profession").value = "WARRIOR";
+                    document.getElementById("level").value = "";
+                    document.getElementById("birthday").value = "";
+                    document.getElementById("banned").value = "true";
+
+                    getPlayers(currentPage, pageSize);
+                } else {
+                    alert("An error occurred while sending data to the server");
+                }
+            }
+        };
+        xhr.send(JSON.stringify(data));
+            });
+        } else {
+            console.error("Элемент с идентификатором 'myButton' не найден в DOM.");
+        }
+    });
+
 </script>
 >>>>>>> b79a02e (Add_Tomcat_server)
 
-        // -- Блок добавления аккаунта --
+    <!-- Блок добавления аккаунта -->
+
     <p>
         <h2> Create new account </h2>
         <form action="/create_account" method="post">
@@ -337,9 +394,13 @@
                 <td>
                     <select id="race" name="race" required>
                     <!-- Допустимые значения для Race -->
-                        <option value="human">Human</option>
-                        <option value="elf">Elf</option>
-                        <option value="dwarf">Dwarf</option>
+                        <option value="HUMAN">HUMAN</option>
+                        <option value="DWARF">DWARF</option>
+                        <option value="ELF">ELF</option>
+                        <option value="GIANT">GIANT</option>
+                        <option value="ORC">ORC</option>
+                        <option value="TROLL">TROLL</option>
+                        <option value="HOBBIT">HOBBIT</option>
                     </select>
                 </td>
              </tr>
@@ -347,10 +408,15 @@
                  <td><label for="profession">Profession:</label></td>
                  <td>
                     <select id="profession" name="profession" required>
-                    <!-- Добавьте допустимые значения для Profession из API -->
-                        <option value="warrior">Warrior</option>
-                        <option value="mage">Mage</option>
-                        <option value="archer">Archer</option>
+                    <!-- Добавьте допустимые значения для Profession -->
+                        <option value="WARRIOR">WARRIOR</option>
+                        <option value="ROGUE">ROGUE</option>
+                        <option value="SORCERER">SORCERER</option>
+                        <option value="CLERIC">CLERIC</option>
+                        <option value="PALADIN">PALADIN</option>
+                        <option value="NAZGUL">NAZGUL</option>
+                        <option value="WARLOCK">WARLOCK</option>
+                        <option value="DRUID">DRUID</option>
                     </select>
                 </td>
             </tr>
@@ -364,12 +430,17 @@
             </tr>
             <tr>
                 <td><label for="banned">Banned:</label></td>
-                <td><input type="checkbox" id="banned" name="banned"></td>
+                <td> <select id="banned" name="banned" required>
+                    <!-- Допустимые значения для Banned из API -->
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>
+                </td>
             </tr>
             <tr>
                 <td></td>
                 <td id = "buttonSave">
-                    <button id="createAccountButton" type="submit"><img src="/img/save.png" alt="Save"></button>
+                    <button id="createAccountButton" ><img src="/img/save.png" alt="Save"></button>
                 </td>
             </tr>
         </table>
